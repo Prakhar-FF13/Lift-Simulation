@@ -1,5 +1,6 @@
 let numFloors = 3;
-let numLifts = 3;
+let numLifts = 2;
+let widthMain = 0;
 let lifts = []
 
 const generateBtn = document.getElementById("generate-btn");
@@ -7,8 +8,61 @@ const building = document.getElementById("building");
 
 generateBtn.onclick = () => {
   numFloors = document.getElementById("floors-input").value || 3;
-  numLifts = document.getElementById("lifts-input").value || 3;
+  numLifts = document.getElementById("lifts-input").value || 10;
   generateFloorsAndLifts(numFloors, numLifts);
+}
+
+function executeLiftRequest(liftIndex) {
+  let floor = lifts[liftIndex].requestQ.shift();
+  lifts[liftIndex].floor = floor;
+  const lift = document.getElementById(`lift-${liftIndex}`);
+  lift.parentElement.removeChild(lift);
+  const newFloor = document.getElementById(`floor-${floor}-main`);
+  newFloor.appendChild(lift);
+}
+
+function addLiftRequest(dir, liftIndex, floor) {
+  lifts[liftIndex].requestQ.push(floor);
+  if (lifts[liftIndex].inUse === false) {
+    lifts[liftIndex].direction = dir;
+    lifts[liftIndex].inUse = true;
+    executeLiftRequest(liftIndex);
+  }
+}
+
+function handleLiftEvent(dir, floor) {
+  // find the closest lift going in same direction.
+  // if no lift going in same direction, then find the closest lift going in opposite direction.
+  let minDist = Infinity;
+  let minDistLiftIdx = -1;
+  // find same direction list.
+  for (let i = 0; i < numLifts; i++) {
+    if (lifts[i].direction == "") {
+      minDistLiftIdx = i;
+      break;
+    }
+    if (lifts[i].direction == dir) {
+      let dist = Math.abs(lifts[i].floor - floor);
+      if (dist < minDist) {
+        minDist = dist;
+        minDistLiftIdx = i;
+      }
+    }
+  }
+
+  if (minDistLiftIdx === -1) {
+    // find list with lowest number of requests.
+    let dist = Infinity;
+    for (let i = 0; i < numLifts; i++) {
+        if (dist < lifts[i].requestQ.length) {
+          dist = lifts[i].requestQ.length;
+          minDistLiftIdx = i;
+        }
+    }
+  }
+
+  // add the location to elevator queue
+  addLiftRequest(dir, minDistLiftIdx, floor);
 }
 
 function createFloorButtons(i) {
@@ -20,9 +74,15 @@ function createFloorButtons(i) {
   const upBtn = document.createElement("button");
   upBtn.classList.add("up-btn");
   upBtn.innerText = "Up";
+  upBtn.onclick = () => {
+    handleLiftEvent("up", i);
+  }
   const downBtn = document.createElement("button");
   downBtn.classList.add("down-btn");
   downBtn.innerText = "Down";
+  downBtn.onclick = () => {
+    handleLiftEvent("down", i);
+  }
 
   if (i != numFloors - 1)
     floorBtnContainer.appendChild(upBtn);
@@ -59,7 +119,10 @@ function createFloor(i) {
   floor.appendChild(createFloorButtons(i, numFloors));
 
   // floor main
-  floor.appendChild(createFloorMain(i));
+  const floorMainWrapper = document.createElement("div")
+  floorMainWrapper.classList.add("floor-main-wrapper")
+  floorMainWrapper.appendChild(createFloorMain(i))
+  floor.appendChild(floorMainWrapper);
 
   // floor label
   floor.appendChild(createFloorLabel(i));
@@ -70,10 +133,15 @@ function createFloor(i) {
 
 const generateFloorsAndLifts = (numFloors, numLifts) => {
   // store lift current state
-  lifts = Array.from({ length: numLifts }, () => {
-    floor: 0;
-    isUse: true;
-    requestQ = [];
+  let id = 0
+  lifts = Array.from({ length: numLifts }, () =>  {
+    return {
+      id: id++,
+      inUse: false,
+      floor: 0,
+      direction: "",
+      requestQ: [],
+    }
   });
 
   // generate floors
@@ -82,12 +150,21 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     createFloor(i);
   }
 
-  const floor0Main = document.getElementById(`floor-0-main`);
-
   // add lifts to floor 0.
-  lifts.map(() => {
+  const floor0Main = document.getElementById(`floor-0-main`);
+  lifts.map((lifDetails, i) => {
     const lift = document.createElement("div");
     lift.classList.add("lift");
+    lift.id = `lift-${lifDetails.id}`;
+    lift.style.left = i * 100 + "px";
+    widthMain = i * 100 + "px";
     floor0Main.appendChild(lift);
-  })
+  });
+
+  // change width of floors manually.
+  for (let i = 0; i < numFloors; i++) {
+    const floorMain = document.getElementById(`floor-${i}-main`);
+    floorMain.style.minWidth = widthMain;
+    floorMain.style.height = 100 + "px";
+  }
 }

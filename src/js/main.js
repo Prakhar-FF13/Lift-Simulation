@@ -8,7 +8,7 @@ const building = document.getElementById("building");
 
 generateBtn.onclick = () => {
   numFloors = document.getElementById("floors-input").value || 3;
-  numLifts = document.getElementById("lifts-input").value || 10;
+  numLifts = document.getElementById("lifts-input").value || 2;
   generateFloorsAndLifts(numFloors, numLifts);
 }
 
@@ -19,6 +19,11 @@ function executeLiftRequest(liftIndex) {
   lift.parentElement.removeChild(lift);
   const newFloor = document.getElementById(`floor-${floor}-main`);
   newFloor.appendChild(lift);
+  lifts[liftIndex].inUse = false;
+  if (lifts[liftIndex].requestQ.length > 0) {
+    lifts[liftIndex].inUse = true;
+    executeLiftRequest(liftIndex);
+  }
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
@@ -54,7 +59,7 @@ function handleLiftEvent(dir, floor) {
     // find list with lowest number of requests.
     let dist = Infinity;
     for (let i = 0; i < numLifts; i++) {
-        if (dist < lifts[i].requestQ.length) {
+        if (dist > lifts[i].requestQ.length) {
           dist = lifts[i].requestQ.length;
           minDistLiftIdx = i;
         }

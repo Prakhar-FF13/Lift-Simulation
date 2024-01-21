@@ -14,19 +14,30 @@ generateBtn.onclick = () => {
 
 function executeLiftRequest(liftIndex) {
   let floor = lifts[liftIndex].requestQ.shift();
+  const prevFloor = lifts[liftIndex].floor
   lifts[liftIndex].floor = floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
-  lift.parentElement.removeChild(lift);
   lift.style.bottom = (floor * 100) + "px"
-  const newFloor = document.getElementById(`floor-${floor}-main`);
-  newFloor.appendChild(lift);
-  lifts[liftIndex].inUse = false;
-  if (lifts[liftIndex].requestQ.length > 0) {
-    lifts[liftIndex].inUse = true;
-    executeLiftRequest(liftIndex);
-  } else {
-    lifts[liftIndex].direction = "";
-  }
+  lift.animate([
+    { bottom: prevFloor * 100 + "px"},
+    { bottom: floor * 100 + "px"},
+  ], {
+    easing: "ease-in-out",
+    duration: 2000 * Math.abs(prevFloor - floor),
+    iterations: 1
+  }).finished.then(() => {
+    lift.parentElement.removeChild(lift);
+    const newFloor = document.getElementById(`floor-${floor}-main`);
+    newFloor.appendChild(lift);
+
+    lifts[liftIndex].inUse = false;
+    if (lifts[liftIndex].requestQ.length > 0) {
+      lifts[liftIndex].inUse = true;
+      executeLiftRequest(liftIndex);
+    } else {
+      lifts[liftIndex].direction = "";
+    }
+  });
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
@@ -130,7 +141,7 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     }
   });
 
-  // generate floors
+  // generate buttons, floor arena and labels
   building.innerHTML = ''
   const btnContainer = document.createElement("div")
   btnContainer.classList.add("btn-wrapper")

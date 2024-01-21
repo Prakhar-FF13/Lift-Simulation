@@ -17,12 +17,15 @@ function executeLiftRequest(liftIndex) {
   lifts[liftIndex].floor = floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
   lift.parentElement.removeChild(lift);
+  lift.style.bottom = (floor * 100) + "px"
   const newFloor = document.getElementById(`floor-${floor}-main`);
   newFloor.appendChild(lift);
   lifts[liftIndex].inUse = false;
   if (lifts[liftIndex].requestQ.length > 0) {
     lifts[liftIndex].inUse = true;
     executeLiftRequest(liftIndex);
+  } else {
+    lifts[liftIndex].direction = "";
   }
 }
 
@@ -114,28 +117,6 @@ function createFloorLabel(i) {
   return floorLabelCont;
 }
 
-function createFloor(i) {
-  // floor container
-  const floor = document.createElement("div");
-  floor.classList.add("floor");
-  floor.id = `floor-${i}`
-
-  // add floor buttons
-  floor.appendChild(createFloorButtons(i, numFloors));
-
-  // floor main
-  const floorMainWrapper = document.createElement("div")
-  floorMainWrapper.classList.add("floor-main-wrapper")
-  floorMainWrapper.appendChild(createFloorMain(i))
-  floor.appendChild(floorMainWrapper);
-
-  // floor label
-  floor.appendChild(createFloorLabel(i));
-
-  // add floor to building
-  building.appendChild(floor);
-}
-
 const generateFloorsAndLifts = (numFloors, numLifts) => {
   // store lift current state
   let id = 0
@@ -151,9 +132,20 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
 
   // generate floors
   building.innerHTML = ''
+  const btnContainer = document.createElement("div")
+  btnContainer.classList.add("btn-wrapper")
+  const floorContainer = document.createElement("div")
+  floorContainer.classList.add("floor-wrapper")
+  const floorLabelContainer = document.createElement("div")
+  floorLabelContainer.classList.add("floor-label-wrapper")
   for (let i = numFloors - 1; i >= 0; i--) {
-    createFloor(i);
+    btnContainer.appendChild(createFloorButtons(i));
+    floorContainer.appendChild(createFloorMain(i));
+    floorLabelContainer.appendChild(createFloorLabel(i));
   }
+  building.appendChild(btnContainer)
+  building.appendChild(floorContainer)
+  building.appendChild(floorLabelContainer)
 
   // add lifts to floor 0.
   const floor0Main = document.getElementById(`floor-0-main`);
@@ -162,7 +154,7 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     lift.classList.add("lift");
     lift.id = `lift-${lifDetails.id}`;
     lift.style.left = i * 100 + "px";
-    widthMain = i * 100 + "px";
+    widthMain = ((i * 100) + 50) + "px";
     floor0Main.appendChild(lift);
   });
 

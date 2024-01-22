@@ -75,23 +75,29 @@ function addLiftRequest(dir, liftIndex, floor) {
 }
 
 function handleLiftEvent(dir, floor) {
-  // find the closest lift going in same direction.
-  // if no lift going in same direction, then find the closest lift going in opposite direction.
   let minDist = Infinity;
   let minDistLiftIdx = -1;
   // find same direction list.
   for (let i = 0; i < numLifts; i++) {
     if (lifts[i].direction == "") {
-      minDistLiftIdx = i;
-      break;
-    }
-    if (lifts[i].direction == dir) {
       let dist = Math.abs(lifts[i].floor - floor);
       if (dist < minDist) {
         minDist = dist;
         minDistLiftIdx = i;
       }
     }
+
+    if (lifts[i].floor === floor) {
+      return;
+    }
+    // if (lifts[i].direction == dir) {
+    //   let dist = Math.abs(lifts[i].floor - floor);
+    //   if (dist < minDist) {
+    //     minDist = dist;
+    //     minDistLiftIdx = i;
+    //   }
+    // }
+
   }
 
   if (minDistLiftIdx === -1) {

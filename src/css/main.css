@@ -68,12 +68,30 @@
   border-bottom: 2px solid black;
 }
 
+/* Lift styles */
+
 .lift {
   position: absolute;
   height: 80px;
   width: 50px;
   background-color: cornflowerblue;
   bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+}
+
+.lift div {
+  flex: 1;
+  background-color:hotpink;
+}
+
+.door-left {
+  border-right: 1px solid black;
+}
+
+.door-right {
+  border-left: 1px solid black;
 }
 
 /* Floor Label Styles */

@@ -17,6 +17,8 @@ function executeLiftRequest(liftIndex) {
   const prevFloor = lifts[liftIndex].floor
   lifts[liftIndex].floor = floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
+  const doorLeft = lift.querySelector(".door-left");
+  const doorRight = lift.querySelector(".door-right");
   lift.style.bottom = (floor * 100) + "px"
   lift.animate([
     { bottom: prevFloor * 100 + "px"},
@@ -25,7 +27,30 @@ function executeLiftRequest(liftIndex) {
     easing: "ease-in-out",
     duration: 2000 * Math.abs(prevFloor - floor),
     iterations: 1
-  }).finished.then(() => {
+  }).finished.then(() => Promise.all([
+    doorLeft.animate([
+      { transform: "translateX(0%)" }, 
+      { transform: "translateX(-100%)" }, 
+      { transform: "translateX(-100%)" }, 
+      { transform: "translateX(-100%)" }, 
+      { transform: "translateX(-100%)" }, 
+      { transform: "translateX(0%)" }
+    ], {
+      easing: "ease-in-out",
+      duration: 4000
+    }).finished,
+    doorRight.animate([
+      { transform: "translateX(0%)" }, 
+      { transform: "translateX(100%)" },
+      { transform: "translateX(100%)" },
+      { transform: "translateX(100%)" },
+      { transform: "translateX(100%)" }, 
+      { transform: "translateX(0%)" }
+    ], {
+      easing: "ease-in-out",
+      duration: 4000
+    }).finished
+  ])).then(() => {
     lift.parentElement.removeChild(lift);
     const newFloor = document.getElementById(`floor-${floor}-main`);
     newFloor.appendChild(lift);
@@ -166,6 +191,18 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     lift.id = `lift-${lifDetails.id}`;
     lift.style.left = i * 100 + "px";
     widthMain = ((i * 100) + 50) + "px";
+
+    // lift doors
+    const doorleft = document.createElement("div");
+    const doorRight = document.createElement("div");
+    doorleft.classList.add("door-left");
+    doorRight.classList.add("door-right");
+    // doorleft.id = `door-left-${lifDetails.id}`;
+    // doorRight.id = `door-right-${lifDetails.id}`;
+    lift.appendChild(doorleft);
+    lift.appendChild(doorRight);
+
+
     floor0Main.appendChild(lift);
   });
 

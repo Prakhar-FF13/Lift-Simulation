@@ -77,8 +77,8 @@ function addLiftRequest(dir, liftIndex, floor) {
 function handleLiftEvent(dir, floor) {
   let minDist = Infinity;
   let minDistLiftIdx = -1;
-  // find same direction list.
   for (let i = 0; i < numLifts; i++) {
+    // find free lift
     if (lifts[i].direction == "") {
       let dist = Math.abs(lifts[i].floor - floor);
       if (dist < minDist) {
@@ -87,18 +87,25 @@ function handleLiftEvent(dir, floor) {
       }
     }
 
+    // already a lift on floor do nothing
     if (lifts[i].floor === floor) {
       return;
     }
   }
 
   if (minDistLiftIdx === -1) {
-    // find list with lowest number of requests.
+    // find list with lowest number of requests and on closest floor.
     let dist = Infinity;
+    let clos = Infinity;
     for (let i = 0; i < numLifts; i++) {
         if (dist > lifts[i].requestQ.length) {
           dist = lifts[i].requestQ.length;
           minDistLiftIdx = i;
+          clos = Math.abs(lifts[i].floor - floor);
+        } else if (dist === lifts[i].requestQ.length && Math.abs(lifts[i].floor - floor) < clos) {
+          dist = lifts[i].requestQ.length;
+          minDistLiftIdx = i;
+          clos = Math.abs(lifts[i].floor - floor);
         }
     }
   }

@@ -62,7 +62,7 @@ function executeLiftRequest(liftIndex) {
     } else {
       lifts[liftIndex].direction = "";
     }
-  });
+  }).catch(()=> {});
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
@@ -90,14 +90,6 @@ function handleLiftEvent(dir, floor) {
     if (lifts[i].floor === floor) {
       return;
     }
-    // if (lifts[i].direction == dir) {
-    //   let dist = Math.abs(lifts[i].floor - floor);
-    //   if (dist < minDist) {
-    //     minDist = dist;
-    //     minDistLiftIdx = i;
-    //   }
-    // }
-
   }
 
   if (minDistLiftIdx === -1) {
@@ -171,6 +163,12 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
       requestQ: [],
     }
   });
+
+  // remove previous animations.
+  const anims = document.getAnimations({
+    subtree: true
+  });
+  anims.forEach((anim)=> anim.cancel())
 
   // generate buttons, floor arena and labels
   building.innerHTML = ''

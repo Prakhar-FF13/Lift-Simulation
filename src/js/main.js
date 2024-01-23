@@ -55,11 +55,10 @@ function executeLiftRequest(liftIndex) {
     const newFloor = document.getElementById(`floor-${floor}-main`);
     newFloor.appendChild(lift);
 
-    lifts[liftIndex].inUse = false;
     if (lifts[liftIndex].requestQ.length > 0) {
-      lifts[liftIndex].inUse = true;
       executeLiftRequest(liftIndex);
     } else {
+      lifts[liftIndex].inUse = false;
       lifts[liftIndex].direction = "";
     }
   }).catch(()=> {});
@@ -79,7 +78,7 @@ function handleLiftEvent(dir, floor) {
   let minDistLiftIdx = -1;
   for (let i = 0; i < numLifts; i++) {
     // find free lift
-    if (lifts[i].direction == "") {
+    if (lifts[i].inUse === false) {
       let dist = Math.abs(lifts[i].floor - floor);
       if (dist < minDist) {
         minDist = dist;
@@ -89,6 +88,45 @@ function handleLiftEvent(dir, floor) {
 
     // already a lift on floor do nothing
     if (lifts[i].floor === floor) {
+      // check if serving another request.
+      if (lifts[i].inUse === false) {
+        // open door when same button is clicked.
+        const lift = document.getElementById(`floor-${lifts[i].floor}-main`)
+        const doorLeft = lift.querySelector(".door-left");
+        const doorRight = lift.querySelector(".door-right");
+        lifts[i].inUse = true;
+        Promise.all([
+          doorLeft.animate([
+            { transform: "translateX(0%)" }, 
+            { transform: "translateX(-100%)" }, 
+            { transform: "translateX(-100%)" }, 
+            { transform: "translateX(-100%)" }, 
+            { transform: "translateX(-100%)" }, 
+            { transform: "translateX(0%)" }
+          ], {
+            easing: "ease-in-out",
+            duration: 4000
+          }).finished,
+          doorRight.animate([
+            { transform: "translateX(0%)" }, 
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" }, 
+            { transform: "translateX(0%)" }
+          ], {
+            easing: "ease-in-out",
+            duration: 4000
+          }).finished
+        ]).then(() => {
+          if (lifts[i].requestQ.length > 0) {
+            executeLiftRequest(i);
+          } else {
+            lifts[i].inUse = false;
+            lifts[i].direction = "";
+          }
+        }).catch(()=> {});
+      }
       return;
     }
   }

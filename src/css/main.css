@@ -44,8 +44,16 @@
   font-weight: bold;
 }
 
+.floor-btn-container button:hover {
+  cursor: pointer;
+}
+
+.floor-btn-container button:active {
+  transform: scale(1.1);
+}
+
 .up-btn {
-  background-color:mediumaquamarine;
+  background-color: mediumaquamarine;
 }
 
 .down-btn {
@@ -83,7 +91,7 @@
 
 .lift div {
   flex: 1;
-  background-color:hotpink;
+  background-color: hotpink;
 }
 
 .door-left {

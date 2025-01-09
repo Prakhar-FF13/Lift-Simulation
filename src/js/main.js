@@ -1,67 +1,85 @@
 let numFloors = 3;
 let numLifts = 2;
 let widthMain = 0;
-let lifts = []
+let lifts = [];
 
 const generateBtn = document.getElementById("generate-btn");
 const building = document.getElementById("building");
 
 generateBtn.onclick = () => {
-  numFloors = document.getElementById("floors-input").value || 3;
-  numLifts = document.getElementById("lifts-input").value || 2;
+  numFloors = document.getElementById("floors-input").value;
+  numLifts = document.getElementById("lifts-input").value;
+  let regex = /^\d+$/;
+
+  if (!regex.test(numFloors) || !regex.test(numLifts)) {
+    alert("Make sure you enter valid numbers > 0");
+  }
+
   generateFloorsAndLifts(numFloors, numLifts);
-}
+};
 
 function executeLiftRequest(liftIndex) {
   let floor = lifts[liftIndex].requestQ.shift();
-  const prevFloor = lifts[liftIndex].floor
+  const prevFloor = lifts[liftIndex].floor;
   lifts[liftIndex].floor = floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
   const doorLeft = lift.querySelector(".door-left");
   const doorRight = lift.querySelector(".door-right");
-  lift.style.bottom = (floor * 100) + "px"
-  lift.animate([
-    { bottom: prevFloor * 100 + "px"},
-    { bottom: floor * 100 + "px"},
-  ], {
-    easing: "ease-in-out",
-    duration: 2000 * Math.abs(prevFloor - floor),
-    iterations: 1
-  }).finished.then(() => Promise.all([
-    doorLeft.animate([
-      { transform: "translateX(0%)" }, 
-      { transform: "translateX(-100%)" }, 
-      { transform: "translateX(-100%)" }, 
-      { transform: "translateX(-100%)" }, 
-      { transform: "translateX(-100%)" }, 
-      { transform: "translateX(0%)" }
-    ], {
-      easing: "ease-in-out",
-      duration: 4000
-    }).finished,
-    doorRight.animate([
-      { transform: "translateX(0%)" }, 
-      { transform: "translateX(100%)" },
-      { transform: "translateX(100%)" },
-      { transform: "translateX(100%)" },
-      { transform: "translateX(100%)" }, 
-      { transform: "translateX(0%)" }
-    ], {
-      easing: "ease-in-out",
-      duration: 4000
-    }).finished
-  ])).then(() => {
-    lift.parentElement.removeChild(lift);
-    const newFloor = document.getElementById(`floor-${floor}-main`);
-    newFloor.appendChild(lift);
+  lift.style.bottom = floor * 100 + "px";
+  lift
+    .animate(
+      [{ bottom: prevFloor * 100 + "px" }, { bottom: floor * 100 + "px" }],
+      {
+        easing: "ease-in-out",
+        duration: 2000 * Math.abs(prevFloor - floor),
+        iterations: 1,
+      }
+    )
+    .finished.then(() =>
+      Promise.all([
+        doorLeft.animate(
+          [
+            { transform: "translateX(0%)" },
+            { transform: "translateX(-100%)" },
+            { transform: "translateX(-100%)" },
+            { transform: "translateX(-100%)" },
+            { transform: "translateX(-100%)" },
+            { transform: "translateX(0%)" },
+          ],
+          {
+            easing: "ease-in-out",
+            duration: 4000,
+          }
+        ).finished,
+        doorRight.animate(
+          [
+            { transform: "translateX(0%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(100%)" },
+            { transform: "translateX(0%)" },
+          ],
+          {
+            easing: "ease-in-out",
+            duration: 4000,
+          }
+        ).finished,
+      ])
+    )
+    .then(() => {
+      lift.parentElement.removeChild(lift);
+      const newFloor = document.getElementById(`floor-${floor}-main`);
+      newFloor.appendChild(lift);
 
-    if (lifts[liftIndex].requestQ.length > 0) {
-      executeLiftRequest(liftIndex);
-    } else {
-      lifts[liftIndex].inUse = false;
-      lifts[liftIndex].direction = "";
-    }
-  }).catch(()=> {});
+      if (lifts[liftIndex].requestQ.length > 0) {
+        executeLiftRequest(liftIndex);
+      } else {
+        lifts[liftIndex].inUse = false;
+        lifts[liftIndex].direction = "";
+      }
+    })
+    .catch(() => {});
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
@@ -91,41 +109,49 @@ function handleLiftEvent(dir, floor) {
       // check if serving another request.
       if (lifts[i].inUse === false) {
         // open door when same button is clicked.
-        const lift = document.getElementById(`floor-${lifts[i].floor}-main`)
+        const lift = document.getElementById(`floor-${lifts[i].floor}-main`);
         const doorLeft = lift.querySelector(".door-left");
         const doorRight = lift.querySelector(".door-right");
         lifts[i].inUse = true;
         Promise.all([
-          doorLeft.animate([
-            { transform: "translateX(0%)" }, 
-            { transform: "translateX(-100%)" }, 
-            { transform: "translateX(-100%)" }, 
-            { transform: "translateX(-100%)" }, 
-            { transform: "translateX(-100%)" }, 
-            { transform: "translateX(0%)" }
-          ], {
-            easing: "ease-in-out",
-            duration: 4000
-          }).finished,
-          doorRight.animate([
-            { transform: "translateX(0%)" }, 
-            { transform: "translateX(100%)" },
-            { transform: "translateX(100%)" },
-            { transform: "translateX(100%)" },
-            { transform: "translateX(100%)" }, 
-            { transform: "translateX(0%)" }
-          ], {
-            easing: "ease-in-out",
-            duration: 4000
-          }).finished
-        ]).then(() => {
-          if (lifts[i].requestQ.length > 0) {
-            executeLiftRequest(i);
-          } else {
-            lifts[i].inUse = false;
-            lifts[i].direction = "";
-          }
-        }).catch(()=> {});
+          doorLeft.animate(
+            [
+              { transform: "translateX(0%)" },
+              { transform: "translateX(-100%)" },
+              { transform: "translateX(-100%)" },
+              { transform: "translateX(-100%)" },
+              { transform: "translateX(-100%)" },
+              { transform: "translateX(0%)" },
+            ],
+            {
+              easing: "ease-in-out",
+              duration: 4000,
+            }
+          ).finished,
+          doorRight.animate(
+            [
+              { transform: "translateX(0%)" },
+              { transform: "translateX(100%)" },
+              { transform: "translateX(100%)" },
+              { transform: "translateX(100%)" },
+              { transform: "translateX(100%)" },
+              { transform: "translateX(0%)" },
+            ],
+            {
+              easing: "ease-in-out",
+              duration: 4000,
+            }
+          ).finished,
+        ])
+          .then(() => {
+            if (lifts[i].requestQ.length > 0) {
+              executeLiftRequest(i);
+            } else {
+              lifts[i].inUse = false;
+              lifts[i].direction = "";
+            }
+          })
+          .catch(() => {});
       }
       return;
     }
@@ -136,15 +162,18 @@ function handleLiftEvent(dir, floor) {
     let dist = Infinity;
     let clos = Infinity;
     for (let i = 0; i < numLifts; i++) {
-        if (dist > lifts[i].requestQ.length) {
-          dist = lifts[i].requestQ.length;
-          minDistLiftIdx = i;
-          clos = Math.abs(lifts[i].floor - floor);
-        } else if (dist === lifts[i].requestQ.length && Math.abs(lifts[i].floor - floor) < clos) {
-          dist = lifts[i].requestQ.length;
-          minDistLiftIdx = i;
-          clos = Math.abs(lifts[i].floor - floor);
-        }
+      if (dist > lifts[i].requestQ.length) {
+        dist = lifts[i].requestQ.length;
+        minDistLiftIdx = i;
+        clos = Math.abs(lifts[i].floor - floor);
+      } else if (
+        dist === lifts[i].requestQ.length &&
+        Math.abs(lifts[i].floor - floor) < clos
+      ) {
+        dist = lifts[i].requestQ.length;
+        minDistLiftIdx = i;
+        clos = Math.abs(lifts[i].floor - floor);
+      }
     }
   }
 
@@ -163,18 +192,16 @@ function createFloorButtons(i) {
   upBtn.innerText = "Up";
   upBtn.onclick = () => {
     handleLiftEvent("up", i);
-  }
+  };
   const downBtn = document.createElement("button");
   downBtn.classList.add("down-btn");
   downBtn.innerText = "Down";
   downBtn.onclick = () => {
     handleLiftEvent("down", i);
-  }
+  };
 
-  if (i != numFloors - 1)
-    floorBtnContainer.appendChild(upBtn);
-  if (i != 0)
-    floorBtnContainer.appendChild(downBtn);
+  if (i != numFloors - 1) floorBtnContainer.appendChild(upBtn);
+  if (i != 0) floorBtnContainer.appendChild(downBtn);
 
   return floorBtnContainer;
 }
@@ -198,39 +225,39 @@ function createFloorLabel(i) {
 
 const generateFloorsAndLifts = (numFloors, numLifts) => {
   // store lift current state
-  let id = 0
-  lifts = Array.from({ length: numLifts }, () =>  {
+  let id = 0;
+  lifts = Array.from({ length: numLifts }, () => {
     return {
       id: id++,
       inUse: false,
       floor: 0,
       direction: "",
       requestQ: [],
-    }
+    };
   });
 
   // remove previous animations.
   const anims = document.getAnimations({
-    subtree: true
+    subtree: true,
   });
-  anims.forEach((anim)=> anim.cancel())
+  anims.forEach((anim) => anim.cancel());
 
   // generate buttons, floor arena and labels
-  building.innerHTML = ''
-  const btnContainer = document.createElement("div")
-  btnContainer.classList.add("btn-wrapper")
-  const floorContainer = document.createElement("div")
-  floorContainer.classList.add("floor-wrapper")
-  const floorLabelContainer = document.createElement("div")
-  floorLabelContainer.classList.add("floor-label-wrapper")
+  building.innerHTML = "";
+  const btnContainer = document.createElement("div");
+  btnContainer.classList.add("btn-wrapper");
+  const floorContainer = document.createElement("div");
+  floorContainer.classList.add("floor-wrapper");
+  const floorLabelContainer = document.createElement("div");
+  floorLabelContainer.classList.add("floor-label-wrapper");
   for (let i = numFloors - 1; i >= 0; i--) {
     btnContainer.appendChild(createFloorButtons(i));
     floorContainer.appendChild(createFloorMain(i));
     floorLabelContainer.appendChild(createFloorLabel(i));
   }
-  building.appendChild(btnContainer)
-  building.appendChild(floorContainer)
-  building.appendChild(floorLabelContainer)
+  building.appendChild(btnContainer);
+  building.appendChild(floorContainer);
+  building.appendChild(floorLabelContainer);
 
   // add lifts to floor 0.
   const floor0Main = document.getElementById(`floor-0-main`);
@@ -239,7 +266,7 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     lift.classList.add("lift");
     lift.id = `lift-${lifDetails.id}`;
     lift.style.left = i * 100 + "px";
-    widthMain = ((i * 100) + 50) + "px";
+    widthMain = i * 100 + 50 + "px";
 
     // lift doors
     const doorleft = document.createElement("div");
@@ -251,7 +278,6 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     lift.appendChild(doorleft);
     lift.appendChild(doorRight);
 
-
     floor0Main.appendChild(lift);
   });
 
@@ -261,4 +287,4 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     floorMain.style.minWidth = widthMain;
     floorMain.style.height = 100 + "px";
   }
-}
+};

@@ -105,7 +105,7 @@ function handleLiftEvent(dir, floor) {
     }
 
     // already a lift on floor do nothing
-    if (lifts[i].floor === floor) {
+    if (lifts[i].floor === floor && lifts[i].direction === dir) {
       // check if serving another request.
       if (lifts[i].inUse === false) {
         // open door when same button is clicked.

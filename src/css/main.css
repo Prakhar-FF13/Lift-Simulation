@@ -42,14 +42,16 @@
   padding: 8px;
   border-radius: 4px;
   font-weight: bold;
+  transition: transform 0.2s ease-in-out;
 }
 
 .floor-btn-container button:hover {
   cursor: pointer;
+  transform: scale(1.1);
 }
 
 .floor-btn-container button:active {
-  transform: scale(1.1);
+  transform: scale(0.9);
 }
 
 .up-btn {

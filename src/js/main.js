@@ -13,6 +13,7 @@ generateBtn.onclick = () => {
 
   if (!regex.test(numFloors) || !regex.test(numLifts)) {
     alert("Make sure you enter valid numbers > 0");
+    return;
   }
 
   generateFloorsAndLifts(numFloors, numLifts);
@@ -26,6 +27,10 @@ function executeLiftRequest(liftIndex) {
   const doorLeft = lift.querySelector(".door-left");
   const doorRight = lift.querySelector(".door-right");
   lift.style.bottom = floor * 100 + "px";
+  curTime = new Date(Date.now());
+  lifts[liftIndex].curRequestEndTime = curTime.setSeconds(
+    curTime.getSeconds() + 2 * Math.abs(prevFloor - floor) + 4
+  );
   lift
     .animate(
       [{ bottom: prevFloor * 100 + "px" }, { bottom: floor * 100 + "px" }],
@@ -113,6 +118,9 @@ function handleLiftEvent(dir, floor) {
         const doorLeft = lift.querySelector(".door-left");
         const doorRight = lift.querySelector(".door-right");
         lifts[i].inUse = true;
+        curTime = new Date(Date.now());
+        curTime.setSeconds(curTime.getSeconds() + 4);
+        lifts[i].curRequestEndTime = curTime;
         Promise.all([
           doorLeft.animate(
             [
@@ -159,20 +167,29 @@ function handleLiftEvent(dir, floor) {
 
   if (minDistLiftIdx === -1) {
     // find list with lowest number of requests and on closest floor.
-    let dist = Infinity;
-    let clos = Infinity;
-    for (let i = 0; i < numLifts; i++) {
-      if (dist > lifts[i].requestQ.length) {
-        dist = lifts[i].requestQ.length;
+    // let dist = Infinity;
+    // let clos = Infinity;
+    // for (let i = 0; i < numLifts; i++) {
+    //   if (dist > lifts[i].requestQ.length) {
+    //     dist = lifts[i].requestQ.length;
+    //     minDistLiftIdx = i;
+    //     clos = Math.abs(lifts[i].floor - floor);
+    //   } else if (
+    //     dist === lifts[i].requestQ.length &&
+    //     Math.abs(lifts[i].floor - floor) < clos
+    //   ) {
+    //     dist = lifts[i].requestQ.length;
+    //     minDistLiftIdx = i;
+    //     clos = Math.abs(lifts[i].floor - floor);
+    //   }
+    // }
+
+    curMin = lifts[0].curRequestEndTime;
+    minDistLiftIdx = 0;
+    for (let i = 1; i < numLifts; i++) {
+      if (curMin > lifts[i].curRequestEndTime) {
+        curMin = lifts[i].curRequestEndTime;
         minDistLiftIdx = i;
-        clos = Math.abs(lifts[i].floor - floor);
-      } else if (
-        dist === lifts[i].requestQ.length &&
-        Math.abs(lifts[i].floor - floor) < clos
-      ) {
-        dist = lifts[i].requestQ.length;
-        minDistLiftIdx = i;
-        clos = Math.abs(lifts[i].floor - floor);
       }
     }
   }
@@ -233,6 +250,7 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
       floor: 0,
       direction: "",
       requestQ: [],
+      curRequestEndTime: 0,
     };
   });
 
@@ -268,15 +286,25 @@ const generateFloorsAndLifts = (numFloors, numLifts) => {
     lift.style.left = i * 100 + "px";
     widthMain = i * 100 + 50 + "px";
 
+    // give lift number.
+    const liftBeforeText = document.createElement("div");
+    liftBeforeText.innerText = i + 1;
+    liftBeforeText.classList.add("lift-text");
+    lift.appendChild(liftBeforeText);
+
     // lift doors
+    const doorContainer = document.createElement("div");
+    doorContainer.classList.add("door-container");
     const doorleft = document.createElement("div");
     const doorRight = document.createElement("div");
     doorleft.classList.add("door-left");
     doorRight.classList.add("door-right");
     // doorleft.id = `door-left-${lifDetails.id}`;
     // doorRight.id = `door-right-${lifDetails.id}`;
-    lift.appendChild(doorleft);
-    lift.appendChild(doorRight);
+    doorContainer.appendChild(doorleft);
+    doorContainer.appendChild(doorRight);
+
+    lift.appendChild(doorContainer);
 
     floor0Main.appendChild(lift);
   });

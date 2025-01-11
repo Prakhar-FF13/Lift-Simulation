@@ -71,7 +71,7 @@
   width: 100%;
   flex: 1;
   position: relative;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .floor-main {
@@ -84,14 +84,29 @@
   position: absolute;
   height: 80px;
   width: 50px;
-  background-color: cornflowerblue;
   bottom: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: row;
 }
 
-.lift div {
+.door-container {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-color: cornflowerblue;
+}
+
+.lift-text {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background-color: white !important;
+  color: black !important;
+}
+
+.door-container div {
   flex: 1;
   background-color: hotpink;
 }

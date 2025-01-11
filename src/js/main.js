@@ -19,10 +19,21 @@ generateBtn.onclick = () => {
   generateFloorsAndLifts(numFloors, numLifts);
 };
 
-function executeLiftRequest(liftIndex) {
-  let floor = lifts[liftIndex].requestQ.shift();
+function getLiftRequestServeTime(liftIndex) {
+  ans = new Date(lifts[liftIndex].curRequestEndTime);
+  for (let i = 0; i < lifts[liftIndex].requestQ.length; i++) {
+    ans.setSeconds(
+      ans.getSeconds() +
+        2 * Math.abs(lifts[liftIndex].floor - lifts[liftIndex].requestQ[i]) +
+        4
+    );
+  }
+
+  return ans;
+}
+
+function animateLift(liftIndex, floor) {
   const prevFloor = lifts[liftIndex].floor;
-  lifts[liftIndex].floor = floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
   const doorLeft = lift.querySelector(".door-left");
   const doorRight = lift.querySelector(".door-right");
@@ -31,6 +42,7 @@ function executeLiftRequest(liftIndex) {
   lifts[liftIndex].curRequestEndTime = curTime.setSeconds(
     curTime.getSeconds() + 2 * Math.abs(prevFloor - floor) + 4
   );
+  lifts[liftIndex].floor = floor;
   lift
     .animate(
       [{ bottom: prevFloor * 100 + "px" }, { bottom: floor * 100 + "px" }],
@@ -81,10 +93,14 @@ function executeLiftRequest(liftIndex) {
         executeLiftRequest(liftIndex);
       } else {
         lifts[liftIndex].inUse = false;
-        lifts[liftIndex].direction = "";
       }
     })
     .catch(() => {});
+}
+
+function executeLiftRequest(liftIndex) {
+  let floor = lifts[liftIndex].requestQ.shift();
+  animateLift(liftIndex, floor);
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
@@ -108,86 +124,13 @@ function handleLiftEvent(dir, floor) {
         minDistLiftIdx = i;
       }
     }
-
-    // already a lift on floor do nothing
-    if (lifts[i].floor === floor && lifts[i].direction === dir) {
-      // check if serving another request.
-      if (lifts[i].inUse === false) {
-        // open door when same button is clicked.
-        const lift = document.getElementById(`floor-${lifts[i].floor}-main`);
-        const doorLeft = lift.querySelector(".door-left");
-        const doorRight = lift.querySelector(".door-right");
-        lifts[i].inUse = true;
-        curTime = new Date(Date.now());
-        curTime.setSeconds(curTime.getSeconds() + 4);
-        lifts[i].curRequestEndTime = curTime;
-        Promise.all([
-          doorLeft.animate(
-            [
-              { transform: "translateX(0%)" },
-              { transform: "translateX(-100%)" },
-              { transform: "translateX(-100%)" },
-              { transform: "translateX(-100%)" },
-              { transform: "translateX(-100%)" },
-              { transform: "translateX(0%)" },
-            ],
-            {
-              easing: "ease-in-out",
-              duration: 4000,
-            }
-          ).finished,
-          doorRight.animate(
-            [
-              { transform: "translateX(0%)" },
-              { transform: "translateX(100%)" },
-              { transform: "translateX(100%)" },
-              { transform: "translateX(100%)" },
-              { transform: "translateX(100%)" },
-              { transform: "translateX(0%)" },
-            ],
-            {
-              easing: "ease-in-out",
-              duration: 4000,
-            }
-          ).finished,
-        ])
-          .then(() => {
-            if (lifts[i].requestQ.length > 0) {
-              executeLiftRequest(i);
-            } else {
-              lifts[i].inUse = false;
-              lifts[i].direction = "";
-            }
-          })
-          .catch(() => {});
-      }
-      return;
-    }
   }
 
   if (minDistLiftIdx === -1) {
-    // find list with lowest number of requests and on closest floor.
-    // let dist = Infinity;
-    // let clos = Infinity;
-    // for (let i = 0; i < numLifts; i++) {
-    //   if (dist > lifts[i].requestQ.length) {
-    //     dist = lifts[i].requestQ.length;
-    //     minDistLiftIdx = i;
-    //     clos = Math.abs(lifts[i].floor - floor);
-    //   } else if (
-    //     dist === lifts[i].requestQ.length &&
-    //     Math.abs(lifts[i].floor - floor) < clos
-    //   ) {
-    //     dist = lifts[i].requestQ.length;
-    //     minDistLiftIdx = i;
-    //     clos = Math.abs(lifts[i].floor - floor);
-    //   }
-    // }
-
-    curMin = lifts[0].curRequestEndTime;
+    curMin = getLiftRequestServeTime(0);
     minDistLiftIdx = 0;
     for (let i = 1; i < numLifts; i++) {
-      if (curMin > lifts[i].curRequestEndTime) {
+      if (curMin > getLiftRequestServeTime(i)) {
         curMin = lifts[i].curRequestEndTime;
         minDistLiftIdx = i;
       }

@@ -2,6 +2,7 @@ let numFloors = 3;
 let numLifts = 2;
 let widthMain = 0;
 let lifts = [];
+const globalQueue = {};
 
 const generateBtn = document.getElementById("generate-btn");
 const building = document.getElementById("building");
@@ -24,7 +25,10 @@ function getLiftRequestServeTime(liftIndex) {
   for (let i = 0; i < lifts[liftIndex].requestQ.length; i++) {
     ans.setSeconds(
       ans.getSeconds() +
-        2 * Math.abs(lifts[liftIndex].floor - lifts[liftIndex].requestQ[i]) +
+        2 *
+          Math.abs(
+            lifts[liftIndex].floor - lifts[liftIndex].requestQ[i].floor
+          ) +
         4
     );
   }
@@ -32,7 +36,7 @@ function getLiftRequestServeTime(liftIndex) {
   return ans;
 }
 
-function animateLift(liftIndex, floor) {
+function animateLift(liftIndex, floor, dir) {
   const prevFloor = lifts[liftIndex].floor;
   const lift = document.getElementById(`lift-${liftIndex}`);
   const doorLeft = lift.querySelector(".door-left");
@@ -90,24 +94,29 @@ function animateLift(liftIndex, floor) {
       newFloor.appendChild(lift);
 
       if (lifts[liftIndex].requestQ.length > 0) {
+        delete globalQueue[floor + dir];
         executeLiftRequest(liftIndex);
       } else {
         lifts[liftIndex].inUse = false;
+        delete globalQueue[floor + dir];
       }
     })
-    .catch(() => {});
+    .catch(() => {
+      delete globalQueue[floor + dir];
+    });
 }
 
 function executeLiftRequest(liftIndex) {
-  let floor = lifts[liftIndex].requestQ.shift();
-  animateLift(liftIndex, floor);
+  let { floor, dir } = lifts[liftIndex].requestQ.shift();
+  lifts[liftIndex].inUse = true;
+  globalQueue[floor + dir] = true;
+  animateLift(liftIndex, floor, dir);
 }
 
 function addLiftRequest(dir, liftIndex, floor) {
-  lifts[liftIndex].requestQ.push(floor);
+  lifts[liftIndex].requestQ.push({ floor, dir });
   if (lifts[liftIndex].inUse === false) {
     lifts[liftIndex].direction = dir;
-    lifts[liftIndex].inUse = true;
     executeLiftRequest(liftIndex);
   }
 }
@@ -115,6 +124,11 @@ function addLiftRequest(dir, liftIndex, floor) {
 function handleLiftEvent(dir, floor) {
   let minDist = Infinity;
   let minDistLiftIdx = -1;
+
+  if (globalQueue[floor + dir] === true) {
+    return;
+  }
+
   for (let i = 0; i < numLifts; i++) {
     // find free lift
     if (lifts[i].inUse === false) {
